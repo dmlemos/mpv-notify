@@ -1,7 +1,3 @@
-⚠ Note: This software is currently unmaintained since I don't have the resources or interest right now to maintain it. If you want to work on it, I could give you access to the repository, or just fork it. :-)
-
-----
-
 mpv-notify
 ==========
 
@@ -12,26 +8,23 @@ Features
 --------
 
 * shows artist, title and album name (as far as detected by mpv)
-* tries to find load cover art in the same folder, or loads it from
-	coverartarchive.org and caches it locally.
+* extracts cover art using ffmpeg 
 
 Requirements
 ------------
 
 * [mpv](http://mpv.io) (>= 0.3.6)
 * [Lua](http://lua.org) (>= 5.2)
-* [lua-socket](http://w3.impa.br/~diego/software/luasocket/)
-* [lua-posix](https://github.com/luaposix/luaposix)
+* `ffmpeg` from [https://www.ffmpeg.org/](https://www.ffmpeg.org/)
 * `notify-send` from [libnotify](https://github.com/GNOME/libnotify)
 * `convert` from [ImageMagick](http://www.imagemagick.org)
 
-On recent Debians, do a `sudo apt-get install lua-socket lua-posix
-libnotify-bin imagemagick`
+Install mpv, lua, ffmpeg, libnotify and ImageMagick packages
 
 Installation
 ------------
 
-Just drop `notify.lua` into the folder `~/.mpv/lua` (create it when neccessary),
+Just drop `notify.lua` into the folder `~/.config/scripts/lua` (create it when neccessary),
 and mpv will find it. Optionally, you can add it to mpv's command line:
 
     mpv --lua=/path/to/notify.lua <files and options>
@@ -39,5 +32,6 @@ and mpv will find it. Optionally, you can add it to mpv's command line:
 License
 -------
 
-mpv-notify was written by Roland Hieber <rohieb at rohieb.name>, you can use it
-under the terms of the [MIT license](http://choosealicense.com/licenses/mit/).
+mpv-notify was originally written by Roland Hieber <rohieb at rohieb.name>. I have simply 
+refactored it according to my needs. You may use it under the terms of the 
+[MIT license](http://choosealicense.com/licenses/mit/).
