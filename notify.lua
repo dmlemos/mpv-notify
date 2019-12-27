@@ -172,4 +172,4 @@ end
 -- insert main() here
 
 mp.register_event("file-loaded", notify_current_track)
-mp.observe_property("metadata", nil, notify_metadata_updated)
+-- mp.observe_property("metadata", nil, notify_metadata_updated)
