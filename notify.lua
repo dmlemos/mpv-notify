@@ -73,7 +73,7 @@ end
 function scaled_image(src, dst)
 	local convert_cmd = ("convert -scale x64 -- %s %s"):format(
 		string.shellescape(src), string.shellescape(dst))
-	print_debug("executing " .. convert_cmd)
+	-- print_debug("executing " .. convert_cmd)
 	if os.execute(convert_cmd) then
 		return true
 	end
@@ -82,10 +82,10 @@ end
 
 -- extract image from audio file
 function extracted_image_from_audiofile (audiofile, imagedst)
-  local ffmpeg_cmd = ("ffmpeg -vsync 2 -i %s %s > /dev/null"):format(
+  local ffmpeg_cmd = ("ffmpeg -loglevel -8 -vsync 2 -i %s %s > /dev/null"):format(
     string.shellescape(audiofile), string.shellescape(imagedst)
   )
-  print_debug("executing " .. ffmpeg_cmd)
+  -- print_debug("executing " .. ffmpeg_cmd)
   if os.execute(ffmpeg_cmd) then
     return true
   end
@@ -121,14 +121,14 @@ function notify_current_track()
   local album  = get_value(metadata, {"album", "ALBUM"})
 	local title  = get_value(metadata, {"title", "TITLE", "icy-title"})
 
-	print_debug("notify_current_track(): -> extracted metadata:")
-	print_debug("artist: " .. artist)
-	print_debug("album: " .. album)	
-  print_debug("title: " .. title)
+	-- print_debug("notify_current_track(): -> extracted metadata:")
+	-- print_debug("artist: " .. artist)
+	-- print_debug("album: " .. album)	
+  -- print_debug("title: " .. title)
 
 	-- absolute filename of currently playing audio file
 	local abs_filename = os.getenv("PWD") .. "/" .. mp.get_property_native("path")
-  print_debug(abs_filename)
+  -- print_debug(abs_filename)
 
   params = ""
   -- extract cover art: set it as icon in notification params
@@ -158,7 +158,7 @@ function notify_current_track()
   body = string.shellescape(body_str)
 
 	local command = ("notify-send -a mpv %s -- %s %s"):format(params, summary, body)
-	print_debug("command: " .. command)
+	-- print_debug("command: " .. command)
 	os.execute(command)
 
   
