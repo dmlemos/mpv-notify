@@ -24,7 +24,7 @@ Install mpv, lua, ffmpeg, libnotify and ImageMagick packages
 Installation
 ------------
 
-Just drop `notify.lua` into the folder `~/.config/scripts/lua` (create it when neccessary),
+Just drop `notify.lua` into the folder `~/.config/mpv/scripts/` (create it when neccessary),
 and mpv will find it. Optionally, you can add it to mpv's command line:
 
     mpv --lua=/path/to/notify.lua <files and options>
