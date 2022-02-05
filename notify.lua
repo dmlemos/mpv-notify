@@ -64,6 +64,12 @@ function string.safe_filename(str)
 	return s;
 end
 
+-- check if a file exists and is readable
+function file_exists(name)
+	local f=io.open(name, "r")
+	if f~=nil then io.close(f) return true else return false end
+end
+
 -------------------------------------------------------------------------------
 -- here we go.
 -------------------------------------------------------------------------------
@@ -127,16 +133,19 @@ function notify_current_track()
   -- print_debug("title: " .. title)
 
 	-- absolute filename of currently playing audio file
-	local abs_filename = os.getenv("PWD") .. "/" .. mp.get_property_native("path")
+	-- local abs_filename = os.getenv("PWD") .. "/" .. mp.get_property_native("path")
+	local abs_filename = mp.get_property_native("path")
   -- print_debug(abs_filename)
 
   params = ""
   -- extract cover art: set it as icon in notification params
   if extracted_image_from_audiofile(abs_filename, COVER_ART_PATH) then
-    if scaled_image(COVER_ART_PATH, ICON_PATH) then
+    if file_exists(COVER_ART_PATH) and scaled_image(COVER_ART_PATH, ICON_PATH) then
       params = "-i " .. ICON_PATH
+		else
+			params = "-i 'audio-x-generic'"
     end
-  end
+	end
 
   -- form notification summary
   summary_str ="Now playing:"
