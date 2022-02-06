@@ -166,19 +166,21 @@ function notify_current_track()
 
   body = string.shellescape(body_str)
 
-	local command = ("notify-send -a mpv %s -- %s %s"):format(params, summary, body)
+	local command = ("notify-send -a mpv -t 5000 %s -- %s %s"):format(params, summary, body)
 	-- print_debug("command: " .. command)
 	os.execute(command)
 
   
 end
 
-function notify_metadata_updated(name, data)
-	notify_current_track()
+function notify_pause_updated(name, value)
+	if value == false then
+		notify_current_track()
+	end
 end
 
 
 -- insert main() here
 
 mp.register_event("file-loaded", notify_current_track)
--- mp.observe_property("metadata", nil, notify_metadata_updated)
+mp.observe_property("pause", "bool", notify_pause_updated)
