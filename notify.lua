@@ -111,6 +111,7 @@ end
 COVER_ART_PATH = "/tmp/covert_art.jpg"
 ICON_PATH = "/tmp/icon.jpg"
 
+
 function notify_current_track()
   os.remove(COVER_ART_PATH)
   os.remove(ICON_PATH)
@@ -133,9 +134,10 @@ function notify_current_track()
   -- print_debug("title: " .. title)
 
 	-- absolute filename of currently playing audio file
-	-- local abs_filename = os.getenv("PWD") .. "/" .. mp.get_property_native("path")
 	local abs_filename = mp.get_property_native("path")
-  -- print_debug(abs_filename)
+	if not abs_filename:match("^%/") then
+		abs_filename = os.getenv("PWD") .. "/" .. abs_filename
+	end
 
   params = ""
   -- extract cover art: set it as icon in notification params
