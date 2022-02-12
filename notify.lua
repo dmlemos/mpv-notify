@@ -176,6 +176,9 @@ end
 function notify_pause_updated(name, value)
 	if value == false then
 		notify_current_track()
+	else
+		local command = "notify-send -a mpv -t 5000 -i audio-x-generic -- \"Music Paused\""
+		os.execute(command)
 	end
 end
 
