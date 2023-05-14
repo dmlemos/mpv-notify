@@ -2,7 +2,6 @@
 -- Just put this file into your ~/.config/mpv/scripts folder and mpv will find it.
 --
 -- Copyright (c) 2014 Roland Hieber
--- (Also some minor edits from Arindam Das)
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +21,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+NOTIFICATION_TIMEOUT = 3 --seconds
+
 -------------------------------------------------------------------------------
 -- helper functions
 -------------------------------------------------------------------------------
-
 function print_debug(s)
 	print("DEBUG: " .. s) -- comment out for no debug info
 	return true
-end
-
--- url-escape a string, per RFC 2396, Section 2
-function string.urlescape(str)
-	local s, c = string.gsub(str, "([^A-Za-z0-9_.!~*'()/-])",
-		function(c)
-			return ("%%%02x"):format(c:byte())
-		end)
-	return s;
 end
 
 -- escape string for html
@@ -71,9 +62,8 @@ function file_exists(name)
 end
 
 -------------------------------------------------------------------------------
--- here we go.
+-- main
 -------------------------------------------------------------------------------
-
 -- scale an image file
 -- @return boolean of success
 function scaled_image(src, dst)
@@ -95,7 +85,6 @@ function extracted_image_from_audiofile (audiofile, imagedst)
   if os.execute(ffmpeg_cmd) then
     return true
   end
-
   return false
 end
 
@@ -108,84 +97,88 @@ function get_value(data, keys)
 	return ""
 end
 
-COVER_ART_PATH = "/tmp/covert_art.jpg"
+-- array with all the arguments escaped
+function make_args(arr, arg1, arg2)
+	table.insert(arr, arg1)
+	table.insert(arr, string.shellescape(arg2))
+end
+
+
+COVER_ART_PATH = "/tmp/cover_art.jpg"
 ICON_PATH = "/tmp/icon.jpg"
 
-
 function notify_current_track()
-  os.remove(COVER_ART_PATH)
-  os.remove(ICON_PATH)
-
-  local metadata = mp.get_property_native("metadata")
-	
-  -- track doesn't contain metadata
-  if not metadata then
+	-- skip when mp data is not available yet (e.g. when loading a playlist) or it is not an audio file
+	-- print_debug("track-list/count: " .. mp.get_property_native("track-list/count"))
+	if mp.get_property_native("track-list/count") < 1 or mp.get_property_native("video-format") then
 		return
 	end
 
-  -- we try to fetch metadata values using all possible keys
-	local artist = get_value(metadata, {"artist", "ARTIST"})
-  local album  = get_value(metadata, {"album", "ALBUM"})
-	local title  = get_value(metadata, {"title", "TITLE", "icy-title"})
+	TITLE_STR = "Now playing: "
+	params = {}
 
-	-- print_debug("notify_current_track(): -> extracted metadata:")
-	-- print_debug("artist: " .. artist)
-	-- print_debug("album: " .. album)	
-  -- print_debug("title: " .. title)
+	-- print_debug("metadata count: " .. mp.get_property_native("metadata/list/count"))
+	if mp.get_property_native("metadata/list/count") > 0 then
+		os.remove(COVER_ART_PATH)
+		os.remove(ICON_PATH)
 
-	-- absolute filename of currently playing audio file
-	local abs_filename = mp.get_property_native("path")
-	if not abs_filename:match("^%/") then
-		abs_filename = os.getenv("PWD") .. "/" .. abs_filename
+		metadata = mp.get_property_native("metadata")
+
+		-- try to fetch metadata values using all possible keys
+		track_artist = get_value(metadata, {"artist", "ARTIST", "album_artist"})
+		track_album  = get_value(metadata, {"album", "ALBUM"})
+		track_title  = get_value(metadata, {"title", "TITLE", "icy-title"})
+
+		-- print_debug("notify_current_track(): -> extracted metadata:")
+		-- print_debug("artist: " .. track_artist)
+		-- print_debug("album: " .. track_album)
+		-- print_debug("title: " .. track_title)
+
+		if string.len(track_artist) > 0 then
+			make_args(params, "-title", TITLE_STR .. string.htmlescape(track_artist))
+		end
+
+		if string.len(track_album) > 0 then
+			make_args(params, "-subtitle", string.htmlescape(track_album))
+		end
+
+		if string.len(track_title) > 0 then
+			make_args(params, "-message", string.htmlescape(track_title))
+		end
+
+		-- absolute filename of currently playing audio file
+		local abs_filename = mp.get_property_native("path")
+		if not abs_filename:match("^%/") then
+			abs_filename = os.getenv("PWD") .. "/" .. abs_filename
+		end
+		-- extract cover art: set it as icon in notification params
+		if extracted_image_from_audiofile(abs_filename, COVER_ART_PATH) then
+			if file_exists(COVER_ART_PATH) and scaled_image(COVER_ART_PATH, ICON_PATH) then
+				make_args(params, "-contentImage", ICON_PATH)
+			end
+		end
+	else
+		-- when metadata is not available, use the filename
+		make_args(params, "-title", TITLE_STR)
+		make_args(params, "-message", mp.get_property_native("filename/no-ext"))
 	end
 
-  params = ""
-  -- extract cover art: set it as icon in notification params
-  if extracted_image_from_audiofile(abs_filename, COVER_ART_PATH) then
-    if file_exists(COVER_ART_PATH) and scaled_image(COVER_ART_PATH, ICON_PATH) then
-      params = "-i " .. ICON_PATH
-		else
-			params = "-i 'audio-x-generic'"
-    end
-	end
-
-  -- form notification summary
-  summary_str ="Now playing:"
-  if (string.len(artist) > 0) then
-    summary_str = string.htmlescape(artist)
-  end
-  summary = string.shellescape(summary_str)
-
-  body_str = mp.get_property_native("filename")
-  if (string.len(title) > 0) then
-    if (string.len(album) > 0) then
-      body_str = ("%s<br /><i>%s</i>"):format(
-        string.htmlescape(title), string.htmlescape(album))
-    else
-      body_str = string.htmlescape(title)
-    end
-  end
-
-  body = string.shellescape(body_str)
-
-	local command = ("notify-send -a mpv -t 5000 %s -- %s %s"):format(params, summary, body)
+	local command = ("alerter -ignoreDnD -timeout %s %s > /dev/null &"):format(NOTIFICATION_TIMEOUT, table.concat(params, ' '))
 	-- print_debug("command: " .. command)
 	os.execute(command)
-
-  
 end
 
 function notify_pause_updated(name, value)
 	if value == false then
 		notify_current_track()
-	else
-		local command = "notify-send -a mpv -t 5000 -i audio-x-generic -- \"Music Paused\""
-		os.execute(command)
+	-- -- uncomment to notify on pause
+	-- else
+	-- 	local command = ("alerter -ignoreDnD -timeout % -title 'mpv' -message 'Music Paused' > /dev/null &"):format(NOTIFICATION_TIMEOUT)
+	-- 	print_debug("command: " .. command)
+	-- 	os.execute(command)
 	end
 end
 
-
--- insert main() here
 
 mp.register_event("file-loaded", notify_current_track)
 mp.observe_property("pause", "bool", notify_pause_updated)
