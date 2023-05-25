@@ -147,8 +147,10 @@ function notify_current_track()
 				make_args(params, "-contentImage", ICON_PATH)
 			end
 		end
-	else
-		-- when metadata is not available, use the filename
+	end
+
+	-- use the filename when metadata is unavailable or it's broken/irrelevant (e.g. only comment is available)
+	if #params == 0 then
 		make_args(params, "-title", TITLE_STR)
 		make_args(params, "-message", mp.get_property_native("filename/no-ext"))
 	end
