@@ -1,8 +1,8 @@
 mpv-notify
 ==========
 
-Adds desktop notifications to the [mpv](https://mpv.io) media player, with
-metadata like artist, album name and track name when the track changes.
+Adds desktop notifications to the [mpv](https://mpv.io) media player on Mac,
+with metadata like artist, album name and track name when the track changes.
 
 Features
 --------
@@ -32,4 +32,4 @@ License
 
 * Originally written by Roland Hieber <rohieb at rohieb.name>
 * Improvements by deyloop <me.deyloop@gmail.com>
-* Port to MacOS by me
+* Port to MacOS by me with a few enhancements

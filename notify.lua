@@ -21,7 +21,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-NOTIFICATION_TIMEOUT = 3 --seconds
+NOTIFICATION_TIMEOUT = 4 --seconds
 
 -------------------------------------------------------------------------------
 -- helper functions
@@ -29,16 +29,6 @@ NOTIFICATION_TIMEOUT = 3 --seconds
 function print_debug(s)
 	print("DEBUG: " .. s) -- comment out for no debug info
 	return true
-end
-
--- escape string for html
-function string.htmlescape(str)
-	local str = string.gsub(str, "<", "&lt;")
-	str = string.gsub(str, ">", "&gt;")
-	str = string.gsub(str, "&", "&amp;")
-	str = string.gsub(str, "\"", "&quot;")
-	str = string.gsub(str, "'", "&apos;")
-	return str
 end
 
 -- escape string for shell inclusion
@@ -135,15 +125,15 @@ function notify_current_track()
 		-- print_debug("title: " .. track_title)
 
 		if string.len(track_artist) > 0 then
-			make_args(params, "-title", TITLE_STR .. string.htmlescape(track_artist))
+			make_args(params, "-title", TITLE_STR .. track_artist)
 		end
 
 		if string.len(track_album) > 0 then
-			make_args(params, "-subtitle", string.htmlescape(track_album))
+			make_args(params, "-subtitle", track_album .. " [ALBUM]")
 		end
 
 		if string.len(track_title) > 0 then
-			make_args(params, "-message", string.htmlescape(track_title))
+			make_args(params, "-message", track_title .. " [TITLE]")
 		end
 
 		-- absolute filename of currently playing audio file
