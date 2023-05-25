@@ -104,7 +104,14 @@ function notify_current_track()
 		return
 	end
 
-	TITLE_STR = "Now playing: "
+	playlist_count = mp.get_property_native("playlist-count") or 1
+	playlist_info = ''
+	if playlist_count > 1 then
+		playlist_number = mp.get_property_native("playlist-pos-1")
+		playlist_info = " [" .. playlist_number .. "/" .. playlist_count .. "]"
+	end
+	TITLE_STR = "Now playing" .. playlist_info .. ": "
+
 	params = {}
 
 	-- print_debug("metadata count: " .. mp.get_property_native("metadata/list/count"))
